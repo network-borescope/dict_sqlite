@@ -165,7 +165,7 @@ def select_hostname_from_ip(conn, host_ip):
     :return:
     """
 
-    sql = ''' SELECT host FROM host_ip_hostname WHERE ip = ? '''
+    sql = ''' SELECT hostname FROM host_ip_hostname WHERE ip = ? '''
     cur = conn.cursor()
     cur.execute(sql, host_ip)
     conn.commit()
