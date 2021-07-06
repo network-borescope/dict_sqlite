@@ -190,6 +190,7 @@ def main():
     services = {"53": "DNS", "80": "HTTP", "443": "HTTPS", "25": "SMTP", "587": "SMTP", "465": "SMTP", "110": "POP3", "995": "POP3", "143": "IMAP", "20": "FTP", "21": "FTP", "22": "SSH"}
 
     key_count = {} # tuplas/padroes: dia-da-semana, hora, id_cliente, ip_origem, distancia, ttl, porta_destino (servico), id_destino (0 = qualquer) : count
+    dump = []
     #know_ips = {} # { ip: hostname }
     #cnames = set() # cname list
     #dns_a_count = 0
@@ -287,14 +288,16 @@ def main():
                     service = "NAO CADASTRADO"
                     if data[D_DPORT] in services: service = services[data[D_DPORT]]
 
-                    hour, min, seg = data[D_HORA].split(":")
+                    hour = data[D_HORA].split(":")[0]
                     # dia-da-semana, hora, id_cliente, ip_origem, distancia, ttl, porta_destino (servico), id_destino (0 = qualquer)                    
-                    key = f"{date_to_day(data[D_DATA])}, {hour}:{min}, {client_id}, {data[D_SIP]}, {data[D_DIST]}, {data[D_TTL]}, {data[D_DPORT]}({service}), {destination_id}"
+                    info = f"{date_to_day(data[D_DATA])}, {hour}, {client_id}, {data[D_SIP]}, {data[D_DIST]}, {data[D_TTL]}, {data[D_DPORT]}({service}), {destination_id}, 1"
                     
-                    if key not in key_count:
-                        key_count[key] = 1
-                    else:
-                        key_count[key] += 1
+                    dump.append(info)
+                    #key = f"{date_to_day(data[D_DATA])}, {hour}, {client_id}, {data[D_SIP]}, {data[D_DIST]}, {data[D_TTL]}, {data[D_DPORT]}({service}), {destination_id}"
+                    #if key not in key_count:
+                        #key_count[key] = 1
+                    #else:
+                        #key_count[key] += 1
                     '''
                     if proto_port == "17:53": # se for dns request
                         if not request_parser(items, data): continue
@@ -332,8 +335,10 @@ def main():
                     '''
 
     with open("output.txt", "w") as fout:
-        for key in key_count:
-            print(f"{key}, {key_count[key]}", file=fout)
+        for info in dump:
+            print(info, file=fout)
+        #for key in key_count:
+            #print(f"{key}, {key_count[key]}", file=fout)
 
 if __name__ == '__main__':
     main()
