@@ -104,7 +104,7 @@ def create_database():
                                     ip TEXT NOT NULL UNIQUE,
                                     count INT
                                 );"""
-    
+
     sql_create_hostname_host_ip = """CREATE TABLE IF NOT EXISTS hostname_host_ip (
                                     hostname TEXT,
                                     ip TEXT,
@@ -119,7 +119,7 @@ def create_database():
                                     validade TIMESTAMP,
 
                                     CONSTRAINT PK_host_ip_hostname PRIMARY KEY (ip, hostname)
-                                );"""                                
+                                );"""
 
     # create a database connection
     conn = create_connection(DATABASE)
@@ -142,6 +142,50 @@ def create_database():
     else:
         print("Error! cannot create the database connection.")
 
+def select_host_ip_id(conn, host_ip):
+    """
+    Query tasks by host_ip
+    :param conn: the Connection object
+    :param host_ip: the ip of the host queried
+    :return:
+    """
+
+    sql = ''' SELECT id FROM host_ip WHERE ip = ? '''
+    cur = conn.cursor()
+    cur.execute(sql, host_ip)
+    conn.commit()
+
+    return cur.fetchall()
+
+def select_hostname_from_ip(conn, host_ip):
+    """
+    Query hostname by host_ip
+    :param conn: the Connection object
+    :param host_ip: the ip of the host queried
+    :return:
+    """
+
+    sql = ''' SELECT host FROM host_ip_hostname WHERE ip = ? '''
+    cur = conn.cursor()
+    cur.execute(sql, host_ip)
+    conn.commit()
+
+    return cur.fetchall()
+
+def select_ip_from_hostname(conn, hostname):
+    """
+    Query host ip by hostname
+    :param conn: the Connection object
+    :param host_ip: the hostname of the host queried
+    :return:
+    """
+
+    sql = ''' SELECT ip FROM hostname_host_ip WHERE hostname = ? '''
+    cur = conn.cursor()
+    cur.execute(sql, hostname)
+    conn.commit()
+
+    return cur.fetchall()
 
 if __name__ == '__main__':
     create_database()
