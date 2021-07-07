@@ -38,7 +38,7 @@ def insert_hostname(conn, hostname):
     sql = ''' INSERT INTO hostname(hostname)
               VALUES(?) '''
     cur = conn.cursor()
-    cur.execute(sql, hostname)
+    cur.execute(sql, (hostname,))
     conn.commit()
     return cur.lastrowid
 
@@ -66,7 +66,7 @@ def get_or_insert(conn, ip):
     return insert_ip(conn, ip)
 
 
-def insert_hostname_ip(conn, hostname_ip):
+def insert_hostname_ip(conn, hostname, ip, date):
     """
     Create a new task
     :param conn:
@@ -77,12 +77,12 @@ def insert_hostname_ip(conn, hostname_ip):
     sql = ''' INSERT INTO hostname_host_ip(hostname, ip, validade)
               VALUES(?, ?, ?) '''
     cur = conn.cursor()
-    cur.execute(sql, hostname_ip)
+    cur.execute(sql, (hostname, ip, date))
     conn.commit()
 
     return cur.lastrowid
 
-def insert_ip_hostname(conn, ip_hostname):
+def insert_ip_hostname(conn, ip, hostname, date):
     """
     Create a new task
     :param conn:
@@ -93,7 +93,7 @@ def insert_ip_hostname(conn, ip_hostname):
     sql = ''' INSERT INTO host_ip_hostname(ip, hostname, validade)
               VALUES(?, ?, ?) '''
     cur = conn.cursor()
-    cur.execute(sql, ip_hostname)
+    cur.execute(sql, (ip, hostname, date))
     conn.commit()
 
     return cur.lastrowid
@@ -177,7 +177,7 @@ def select_hostname_from_ip(conn, host_ip):
 
     sql = ''' SELECT hostname FROM host_ip_hostname WHERE ip = ? '''
     cur = conn.cursor()
-    cur.execute(sql, host_ip)
+    cur.execute(sql, (host_ip,))
     conn.commit()
 
     return cur.fetchall()
@@ -192,7 +192,7 @@ def select_ip_from_hostname(conn, hostname):
 
     sql = ''' SELECT ip FROM hostname_host_ip WHERE hostname = ? '''
     cur = conn.cursor()
-    cur.execute(sql, hostname)
+    cur.execute(sql, (hostname,))
     conn.commit()
 
     return cur.fetchall()
