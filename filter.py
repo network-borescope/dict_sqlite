@@ -1,6 +1,7 @@
 import datetime
 from ip_to_nome_lat_lon import site_from_ip
-from sys import argv, exit
+from sys import argv, exit, stdin
+import db_manager
 
 # GLOBALS
 
@@ -28,7 +29,8 @@ def date_to_day(d_data):
     day = datetime.datetime(year=int(year), month=int(month), day=int(day)).weekday()
 
     day_of_week = {0: "Segunda", 1: "Terca", 2: "Quarta", 3: "Quinta", 4: "Sexta", 5: "Sabado", 6: "Domingo"}
-    return day_of_week[day]
+    #return day_of_week[day]
+    return str((day+1 % 7)+1)
 
 
 def hour_to_timedelta(d_hora):
@@ -184,13 +186,15 @@ def main():
         filename = arguments[0]
     else: exit(1)
 
-    count = 0
-    fin = open(filename, "r")
+    filename = filename.split(".")[0]
 
-    services = {"53": "DNS", "80": "HTTP", "443": "HTTPS", "25": "SMTP", "587": "SMTP", "465": "SMTP", "110": "POP3", "995": "POP3", "143": "IMAP", "20": "FTP", "21": "FTP", "22": "SSH"}
+    count = 0
+    #fin = open(filename, "r")
+    fin = stdin
+
+    services = {"53": "DNS", "80": "HTTP", "443": "HTTP", "25": "SMTP", "587": "SMTP", "465": "SMTP", "110": "POP3", "995": "POP3", "143": "IMAP", "20": "FTP", "21": "FTP", "22": "SSH"}
 
     key_count = {} # tuplas/padroes: dia-da-semana, hora, id_cliente, ip_origem, distancia, ttl, porta_destino (servico), id_destino (0 = qualquer) : count
-    dump = []
     #know_ips = {} # { ip: hostname }
     #cnames = set() # cname list
     #dns_a_count = 0
@@ -199,6 +203,7 @@ def main():
 
     data = []
 
+    conn = db_manager.create_connection("syn_dns_ether.db")
     for line in fin:
         count+=1
         if count % 1000000 == 0: print(count)
@@ -283,21 +288,32 @@ def main():
                     
                     client_id = site_from_ip(data[D_SIP])[6]
 
-                    destination_id = 0 # 
+                    destination_id = db_manager.get_or_insert(conn, data[D_DIP])
                     
-                    service = "NAO CADASTRADO"
+                    #service = "DESCONHECIDO"
+                    service = data[D_DPORT]
                     if data[D_DPORT] in services: service = services[data[D_DPORT]]
 
                     hour = data[D_HORA].split(":")[0]
                     # dia-da-semana, hora, id_cliente, ip_origem, distancia, ttl, porta_destino (servico), id_destino (0 = qualquer)                    
-                    info = f"{date_to_day(data[D_DATA])}, {hour}, {client_id}, {data[D_SIP]}, {data[D_DIST]}, {data[D_TTL]}, {data[D_DPORT]}({service}), {destination_id}, 1"
+                    #info = f"{date_to_day(data[D_DATA])}, {hour}, {client_id}, {data[D_SIP]}, {data[D_DIST]}, {data[D_TTL]}, {data[D_DPORT]}({service}), {destination_id}, 1"
+                    key = ""
+                    key += date_to_day(data[D_DATA]) + ","
+                    key += hour + ","
+                    key += client_id + ","
+                    key += data[D_SIP] + ","
+                    key += data[D_DIST] + ","
+                    key += data[D_TTL] + ","
+                    key += data[D_DPORT] + ","
+                    key += service + ","
+                    #key += data[D_DIP] + ","
+                    key += str(destination_id)
+                    #info += "1"
                     
-                    dump.append(info)
-                    #key = f"{date_to_day(data[D_DATA])}, {hour}, {client_id}, {data[D_SIP]}, {data[D_DIST]}, {data[D_TTL]}, {data[D_DPORT]}({service}), {destination_id}"
-                    #if key not in key_count:
-                        #key_count[key] = 1
-                    #else:
-                        #key_count[key] += 1
+                    if key not in key_count:
+                        key_count[key] = 1
+                    else:
+                        key_count[key] += 1
                     '''
                     if proto_port == "17:53": # se for dns request
                         if not request_parser(items, data): continue
@@ -334,11 +350,10 @@ def main():
                         continue
                     '''
 
-    with open("output.txt", "w") as fout:
-        for info in dump:
-            print(info, file=fout)
-        #for key in key_count:
-            #print(f"{key}, {key_count[key]}", file=fout)
+    conn.close()
+    with open("out_" + filename + ".txt", "w") as fout:
+        for key in key_count:
+            print(key + "," + str(key_count[key]), file=fout)
 
 if __name__ == '__main__':
     main()

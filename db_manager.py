@@ -1,8 +1,6 @@
 import sqlite3
 from sqlite3 import Error
 
-DATABASE = r"C:\sqlite\db\coletaPoP-DF.db"
-
 def create_connection(db_file):
     """ create a database connection to the SQLite database
         specified by db_file
@@ -55,10 +53,18 @@ def insert_ip(conn, ip):
     sql = ''' INSERT INTO host_ip(ip)
               VALUES(?) '''
     cur = conn.cursor()
-    cur.execute(sql, ip)
+    cur.execute(sql, (ip,))
     conn.commit()
 
     return cur.lastrowid
+
+def get_or_insert(conn, ip):
+    id = select_host_ip_id(conn, ip)
+
+    if id is not None: return id
+    
+    return insert_ip(conn, ip)
+
 
 def insert_hostname_ip(conn, hostname_ip):
     """
@@ -92,7 +98,7 @@ def insert_ip_hostname(conn, ip_hostname):
 
     return cur.lastrowid
 
-def create_database():
+def create_database(DATABASE):
     sql_create_hostname = """ CREATE TABLE IF NOT EXISTS hostname (
                                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                                         hostname TEXT NOT NULL UNIQUE,
@@ -152,10 +158,14 @@ def select_host_ip_id(conn, host_ip):
 
     sql = ''' SELECT id FROM host_ip WHERE ip = ? '''
     cur = conn.cursor()
-    cur.execute(sql, host_ip)
+    cur.execute(sql, (host_ip,))
     conn.commit()
 
-    return cur.fetchall()
+    res = cur.fetchall()
+
+    if len(res) == 0: return None
+
+    return res[0][0]
 
 def select_hostname_from_ip(conn, host_ip):
     """
@@ -188,4 +198,6 @@ def select_ip_from_hostname(conn, hostname):
     return cur.fetchall()
 
 if __name__ == '__main__':
-    create_database()
+    #DATABASE = r"C:\sqlite\db\coletaPoP-DF.db"
+    DATABASE = r"syn_dns_ether.db"
+    create_database(DATABASE)

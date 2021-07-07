@@ -1,6 +1,7 @@
 from db_manager import *
 import datetime
 
+DATABASE = r"C:\sqlite\db\coletaPoP-DF.db"
 conn = create_connection(DATABASE)
 
 if conn is not None:
@@ -11,10 +12,22 @@ if conn is not None:
     result = select_ip_from_hostname(conn, ('dns.google.com',))
     print(result)
 
-    result = select_host_ip_id(conn, ('1.1.1.1',))
+    result = select_host_ip_id(conn, '1.1.1.1')
     print(result)
 
-    result = select_host_ip_id(conn, ('1.2.1.1',))
+    result = select_host_ip_id(conn, '1.2.1.1')
+    print(result)
+
+    result = select_host_ip_id(conn, '1.3.1.1')
+    print(result)
+
+    result = get_or_insert(conn, "1.3.1.1")
+    print(result)
+
+    result = select_host_ip_id(conn, '1.3.1.1')
+    print(result)
+
+    result = get_or_insert(conn, "1.3.1.1")
     print(result)
 
     conn.close()
