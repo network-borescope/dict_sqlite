@@ -58,14 +58,6 @@ def insert_ip(conn, ip):
 
     return cur.lastrowid
 
-def get_or_insert(conn, ip):
-    id = select_host_ip_id(conn, ip)
-
-    if id is not None: return id
-    
-    return insert_ip(conn, ip)
-
-
 def insert_hostname_ip(conn, hostname, ip, date):
     """
     Create a new task
@@ -148,6 +140,25 @@ def create_database(DATABASE):
     else:
         print("Error! cannot create the database connection.")
 
+def select_id_from_hostname(conn, hostname):
+    """
+    Query tasks by hostname
+    :param conn: the Connection object
+    :param hostname: the hostname of the host queried
+    :return:
+    """
+
+    sql = ''' SELECT id FROM hostname WHERE hostname = ? '''
+    cur = conn.cursor()
+    cur.execute(sql, (hostname,))
+    conn.commit()
+
+    res = cur.fetchall()
+
+    if len(res) == 0: return None
+
+    return res[0][0]
+
 def select_host_ip_id(conn, host_ip):
     """
     Query tasks by host_ip
@@ -196,6 +207,66 @@ def select_ip_from_hostname(conn, hostname):
     conn.commit()
 
     return cur.fetchall()
+
+def select_ip_hostname_from_host_ip_hostname(conn, ip, hostname):
+    """
+    Query row by ip and hostname
+    :param conn: the Connection object
+    :param host_ip: the hostname of the host queried
+    :return:
+    """
+
+    sql = ''' SELECT * FROM host_ip_hostname WHERE ip = ? AND hostname = ? '''
+    cur = conn.cursor()
+    cur.execute(sql, (ip, hostname))
+    conn.commit()
+
+    return cur.fetchall()[0]
+
+def select_hostname_ip_from_hostname_host_ip(conn, hostname, ip):
+    """
+    Query row by hostname and ip
+    :param conn: the Connection object
+    :param host_ip: the hostname of the host queried
+    :return:
+    """
+
+    sql = ''' SELECT * FROM hostname_host_ip WHERE hostname = ? AND  ip = ? '''
+    cur = conn.cursor()
+    cur.execute(sql, (hostname, ip))
+    conn.commit()
+
+    return cur.fetchall()[0]
+
+### get or insert
+
+def get_or_insert_ip(conn, ip):
+    id = select_host_ip_id(conn, ip)
+
+    if id is not None: return id
+    
+    return insert_ip(conn, ip)
+
+def get_or_insert_hostname(conn, hostname):
+    id = select_id_from_hostname(conn, hostname)
+
+    if id is not None: return id
+    
+    return insert_hostname(conn, hostname)
+
+def get_or_insert_ip_hostname(conn , ip, hostname, date):
+    id = select_ip_hostname_from_host_ip_hostname(conn, ip, hostname)
+
+    if id is not None: return id
+    
+    return insert_ip_hostname(conn, ip, hostname, date)
+
+def get_or_insert_hostname_ip(conn , hostname, ip, date):
+    id = select_ip_hostname_from_host_ip_hostname(conn, hostname, ip)
+
+    if id is not None: return id
+    
+    return insert_hostname_ip(conn, hostname, ip, date)
 
 if __name__ == '__main__':
     #DATABASE = r"C:\sqlite\db\coletaPoP-DF.db"
