@@ -200,9 +200,7 @@ def main():
     #dns_a_count = 0
     #dns_a_cname_count = 0
 
-    d1_dst = {} # id_client, ip_src, dst, servico, id destino: total
-    d2_dst = {} # id_client, ip_src, dst, servico: total
-    d3_dst = {} # id_client, ip_src, dst: total
+    dict_dst = {} 
 
 
     data = []
@@ -320,23 +318,23 @@ def main():
                         key_count[key] += 1
                     
                     key1 = client_id + "," + data[D_SIP] + "," + data[D_DIST] + "," + service + "," + str(destination_id)
-                    key2 = client_id + "," + data[D_SIP] + "," + data[D_DIST] + "," + service
-                    key3 = client_id + "," + data[D_SIP] + "," + data[D_DIST]
+                    key2 = client_id + "," + data[D_SIP] + "," + data[D_DIST] + "," + service + "," + "0"
+                    key3 = client_id + "," + data[D_SIP] + "," + data[D_DIST] + ",0" + ",0"
 
-                    if key1 not in d1_dst:
-                        d1_dst[key1] = 1
+                    if key1 not in dict_dst:
+                        dict_dst[key1] = 1
                     else:
-                        d1_dst[key1] += 1
+                        dict_dst[key1] += 1
 
-                    if key2 not in d2_dst:
-                        d2_dst[key2] = 1
+                    if key2 not in dict_dst:
+                        dict_dst[key2] = 1
                     else:
-                        d2_dst[key2] += 1
+                        dict_dst[key2] += 1
 
-                    if key3 not in d3_dst:
-                        d3_dst[key3] = 1
+                    if key3 not in dict_dst:
+                        dict_dst[key3] = 1
                     else:
-                        d3_dst[key3] += 1
+                        dict_dst[key3] += 1
 
                     '''
                     if proto_port == "17:53": # se for dns request
@@ -379,17 +377,9 @@ def main():
         for key in key_count:
             print(key + "," + str(key_count[key]), file=fout)
 
-    with open("hist_dst1_" + filename + ".csv", "w") as fout:
-        for key in d1_dst:
-            print(key + "," + str(d1_dst[key]), file=fout)
-
-    with open("hist_dst2_" + filename + ".csv", "w") as fout:
-        for key in d2_dst:
-            print(key + "," + str(d2_dst[key]), file=fout)
-
-    with open("hist_dst3_" + filename + ".csv", "w") as fout:
-        for key in d3_dst:
-            print(key + "," + str(d3_dst[key]), file=fout)
+    with open("hist_dst_" + filename + ".csv", "w") as fout:
+        for key in dict_dst:
+            print(key + "," + str(dict_dst[key]), file=fout)
 
 
 if __name__ == '__main__':
