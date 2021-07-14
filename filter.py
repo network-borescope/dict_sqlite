@@ -296,12 +296,16 @@ def main():
                     service = data[D_DPORT]
                     if data[D_DPORT] in services: service = services[data[D_DPORT]]
 
-                    hour = data[D_HORA].split(":")[0]
-                    # dia-da-semana, hora, id_cliente, ip_origem, distancia, ttl, porta_destino (servico), id_destino (0 = qualquer)                    
-                    #info = f"{date_to_day(data[D_DATA])}, {hour}, {client_id}, {data[D_SIP]}, {data[D_DIST]}, {data[D_TTL]}, {data[D_DPORT]}({service}), {destination_id}, 1"
-                    key = ""
-                    key += date_to_day(data[D_DATA]) + ","
-                    key += hour + ","
+                    hour, min, sec = data[D_HORA].split(":")
+                    # dia-da-semana, hora, id_cliente, ip_origem, distancia, ttl, porta_destino (servico), id_destino (0 = qualquer)
+
+                    day = date_to_day(data[D_DATA])
+                    prefix = data[D_DATA] + "," + day + "," + hour + "," + min + ","
+
+                    #key = ""
+                    #key += day + ","
+                    #key += hour + ","
+                    key = prefix
                     key += client_id + ","
                     key += data[D_SIP] + ","
                     key += data[D_DIST] + ","
@@ -310,16 +314,15 @@ def main():
                     key += service + ","
                     #key += data[D_DIP] + ","
                     key += str(destination_id)
-                    #info += "1"
                     
                     if key not in key_count:
                         key_count[key] = 1
                     else:
                         key_count[key] += 1
                     
-                    key1 = client_id + "," + data[D_SIP] + "," + data[D_DIST] + "," + service + "," + str(destination_id)
-                    key2 = client_id + "," + data[D_SIP] + "," + data[D_DIST] + "," + service + "," + "0"
-                    key3 = client_id + "," + data[D_SIP] + "," + data[D_DIST] + ",0" + ",0"
+                    key1 = prefix + client_id + "," + data[D_SIP] + "," + data[D_DIST] + "," + service + "," + str(destination_id)
+                    key2 = prefix + client_id + "," + data[D_SIP] + "," + data[D_DIST] + "," + service + "," + "0"
+                    key3 = prefix + client_id + "," + data[D_SIP] + "," + data[D_DIST] + ",0" + ",0"
 
                     if key1 not in dict_dst:
                         dict_dst[key1] = 1
