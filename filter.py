@@ -187,6 +187,8 @@ def main():
     else: exit(1)
 
     filename = filename.split(".")[0]
+    minuto_base = -1 # armazena o minuto de inicio da captura
+
 
     count = 0
     #fin = open(filename, "r")
@@ -296,11 +298,13 @@ def main():
                     service = data[D_DPORT]
                     if data[D_DPORT] in services: service = services[data[D_DPORT]]
 
-                    hour, min, sec = data[D_HORA].split(":")
+                    hour, minute, sec = data[D_HORA].split(":")
+
+                    if minuto_base == -1: minuto_base = minute
                     # dia-da-semana, hora, id_cliente, ip_origem, distancia, ttl, porta_destino (servico), id_destino (0 = qualquer)
 
                     day = date_to_day(data[D_DATA])
-                    prefix = data[D_DATA] + "," + day + "," + hour + "," + min + ","
+                    prefix = data[D_DATA] + "," + day + "," + hour + "," + minuto_base + ","
 
                     #key = ""
                     #key += day + ","
