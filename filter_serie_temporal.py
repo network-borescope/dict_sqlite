@@ -36,12 +36,12 @@ def main():
 
     count = 0
     data = []
+    hash = {} # { PRIMARY KEYS: {"count": int, "modified": timestamp} }
 
-    conn = db_manager_serie.create_connection(r"syn_dns_serie_temporal.db")
     for line in fin:
         
         count+=1
-        if count % 1000 == 0: print(count)
+        if count % 10000 == 0: print(count)
 
         # reinicia as variaveis de memoria
         data = []
@@ -54,6 +54,28 @@ def main():
 
         time = build_timestamp(data[D_DATA], data[D_HORA], data[D_MIN])
 
+        primary_keys = data[D_SIP] + " " + data[D_DIST] + " " + data[D_SERV] + " " + data[D_DID]
+        if primary_keys not in hash:
+            hash[primary_keys] = {"count": int(data[D_COUNT]), "modified": time}
+        else: hash[primary_keys]["count"] += int(data[D_COUNT])
+            
+    
+    fin.close()
+
+    conn = db_manager_serie.create_connection(r"syn_dns_serie_temporal.db")
+    
+    for primary_key in hash:
+        ip_src, dist, serv, d_id = primary_key.split(" ")
+
+        st = str(hash[primary_key]["modified"]) + "," + str(hash[primary_key]["count"])
+        if db_manager_serie.check_if_row_exists(conn, ip_src, dist, serv, d_id) is None:
+            db_manager_serie.insert_st(conn, ip_src, dist, serv, d_id, st, hash[primary_key]["modified"])
+        
+        else:
+            db_manager_serie.update_st(conn, ip_src, dist, serv, d_id, st, hash[primary_key]["modified"])
+    
+    conn.close()
+    '''
         st = db_manager_serie.select_st_from_serie_temp(conn, data[D_SIP], data[D_DIST], data[D_SERV], data[D_DID])
 
         if st is None:
@@ -77,9 +99,8 @@ def main():
                 print("Sendo processada: ", time)
             
             db_manager_serie.update_st(conn, data[D_SIP], data[D_DIST], data[D_SERV], data[D_DID], new_st, time)
-
-    conn.close()
-    fin.close()
+    '''
+    
 
 if __name__ == '__main__':
     main()
