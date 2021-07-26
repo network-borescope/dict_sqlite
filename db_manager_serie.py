@@ -33,7 +33,6 @@ def create_table(conn, create_table_sql):
 
 def create_database(DATABASE, conn = None):
     sql_create_serie_temp = """ CREATE TABLE IF NOT EXISTS serie_temporal (
-                                        id_cliente INTEGER,
                                         ip_src TEXT,
                                         dist_src TEXT,
                                         servico TEXT,
@@ -41,7 +40,7 @@ def create_database(DATABASE, conn = None):
                                         cr_time timestamp NOT NULL,
                                         last_mod timestamp NOT NULL,
                                         st TEXT NOT NULL,
-                                        CONSTRAINT PK_serie_temp PRIMARY KEY (id_cliente, ip_src, dist_src, servico, id_dst)
+                                        CONSTRAINT PK_serie_temp PRIMARY KEY (ip_src, dist_src, servico, id_dst)
                                     ); """
 
 
@@ -61,7 +60,7 @@ def create_database(DATABASE, conn = None):
         print("Error! cannot create the database connection.")
 
 
-def select_row_from_serie_temp(conn, id_cliente, ip, dist, serv, id ):
+def select_row_from_serie_temp(conn, ip, dist, serv, id ):
     """
     Query tasks by host_ip
     :param conn: the Connection object
@@ -69,9 +68,9 @@ def select_row_from_serie_temp(conn, id_cliente, ip, dist, serv, id ):
     :return:
     """
 
-    sql = ''' SELECT * FROM serie_temporal WHERE id_cliente = ? AND ip_src = ? AND dist_src = ? AND servico = ? AND id_dst = ?'''
+    sql = ''' SELECT * FROM serie_temporal WHERE ip_src = ? AND dist_src = ? AND servico = ? AND id_dst = ?'''
     cur = conn.cursor()
-    cur.execute(sql, (id_cliente, ip, dist, serv, id))
+    cur.execute(sql, (ip, dist, serv, id))
     conn.commit()
 
     res = cur.fetchall()
@@ -80,7 +79,7 @@ def select_row_from_serie_temp(conn, id_cliente, ip, dist, serv, id ):
 
     return res[0]
 
-def select_st_from_serie_temp(conn, id_cliente, ip, dist, serv, id ):
+def select_st_from_serie_temp(conn, ip, dist, serv, id ):
     """
     Query tasks by host_ip
     :param conn: the Connection object
@@ -88,9 +87,9 @@ def select_st_from_serie_temp(conn, id_cliente, ip, dist, serv, id ):
     :return:
     """
 
-    sql = ''' SELECT st FROM serie_temporal WHERE id_cliente = ? AND ip_src = ? AND dist_src = ? AND servico = ? AND id_dst = ?'''
+    sql = ''' SELECT st FROM serie_temporal WHERE ip_src = ? AND dist_src = ? AND servico = ? AND id_dst = ?'''
     cur = conn.cursor()
-    cur.execute(sql, (id_cliente, ip, dist, serv, id))
+    cur.execute(sql, (ip, dist, serv, id))
     conn.commit()
 
     res = cur.fetchall()
@@ -99,7 +98,7 @@ def select_st_from_serie_temp(conn, id_cliente, ip, dist, serv, id ):
 
     return res[0][0]
 
-def update_st(conn, id_cliente, ip, dist, serv, id, new_st, last_mod):
+def update_st(conn, ip, dist, serv, id, new_st, last_mod):
     """
     Query tasks by host_ip
     :param conn: the Connection object
@@ -107,18 +106,19 @@ def update_st(conn, id_cliente, ip, dist, serv, id, new_st, last_mod):
     :return:
     """
 
-    sql = ''' UPDATE serie_temporal SET st = ?, last_mod = ? WHERE id_cliente = ? AND ip_src = ? AND dist_src = ? AND servico = ? AND id_dst = ?'''
+    sql = ''' UPDATE serie_temporal SET st = ?, last_mod = ? WHERE ip_src = ? AND dist_src = ? AND servico = ? AND id_dst = ?'''
     cur = conn.cursor()
-    cur.execute(sql, (new_st, last_mod, id_cliente, ip, dist, serv, id))
+    cur.execute(sql, (new_st, last_mod, ip, dist, serv, id))
     conn.commit()
+
+    return cur.rowcount
 
 
 ### insert
-def insert_st(conn, id_cliente, ip, dist, serv, id, st, time):
+def insert_st(conn, ip, dist, serv, id, st, time):
     """
     Create a new row into the serie_temporal table
     :param conn:
-    :param id_cliente:
     :param ip
     :param dist
     :param serv
@@ -127,11 +127,43 @@ def insert_st(conn, id_cliente, ip, dist, serv, id, st, time):
     :param time
     """
 
-    sql = ''' INSERT INTO serie_temporal(id_cliente, ip_src, dist_src, servico, id_dst, cr_time, last_mod, st)
-              VALUES(?, ?, ?, ?, ?, ?, ?, ?) '''
+    sql = ''' INSERT INTO serie_temporal(ip_src, dist_src, servico, id_dst, cr_time, last_mod, st)
+              VALUES(?, ?, ?, ?, ?, ?, ?) '''
     cur = conn.cursor()
-    cur.execute(sql, (id_cliente, ip, dist, serv, id, time, time, st))
+    cur.execute(sql, (ip, dist, serv, id, time, time, st))
     conn.commit()
+
+    return cur.rowcount
+
+
+# others
+
+def aggregate_st(conn, ip):
+    sql = ''' SELECT st FROM serie_temporal WHERE ip_src = ?'''
+    cur = conn.cursor()
+    cur.execute(sql, (ip,))
+    conn.commit()
+
+    res = cur.fetchall()
+    aggregate = {}
+
+    for tupla in res:
+        st = tupla[0]
+        
+        tuplas_st = st.split(";")
+        for string_tupla_st in tuplas_st:
+            tupla_st = string_tupla_st.split(",")
+            if tupla_st[0] not in aggregate:
+                aggregate[tupla_st[0]] = int(tupla_st[1])
+            else: aggregate[tupla_st[0]] += int(tupla_st[1])
+    
+    result = ""
+    for timestamp in aggregate:
+        result += timestamp + "," + str(aggregate[timestamp]) + ";"
+    
+    result = result[:-1]
+
+    return result
 
 if __name__ == '__main__':
     #DATABASE = r"C:\sqlite\db\coletaPoP-DF.db"

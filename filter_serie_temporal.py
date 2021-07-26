@@ -53,11 +53,12 @@ def main():
         if len(data) < 12: continue
 
         time = build_timestamp(data[D_DATA], data[D_HORA], data[D_MIN])
-        st = db_manager_serie.select_st_from_serie_temp(conn, data[D_ID_CLIENTE], data[D_SIP], data[D_DIST], data[D_SERV], data[D_DID])
+
+        st = db_manager_serie.select_st_from_serie_temp(conn, data[D_SIP], data[D_DIST], data[D_SERV], data[D_DID])
 
         if st is None:
             st = str(time) + "," + data[D_COUNT]
-            db_manager_serie.insert_st(conn, data[D_ID_CLIENTE], data[D_SIP], data[D_DIST], data[D_SERV], data[D_DID], st, time)
+            db_manager_serie.insert_st(conn, data[D_SIP], data[D_DIST], data[D_SERV], data[D_DID], st, time)
         else:
             last_part_of_serie = st.split(";")[-1] # "timestamp,count"
             last_part_of_serie = last_part_of_serie.split(",") # [timestamp, count]
@@ -75,8 +76,7 @@ def main():
                 print("Existente no banco: ", last_part_of_serie[0])
                 print("Sendo processada: ", time)
             
-            db_manager_serie.update_st(conn, data[D_ID_CLIENTE], data[D_SIP], data[D_DIST], data[D_SERV], data[D_DID], new_st, time)
-            
+            db_manager_serie.update_st(conn, data[D_SIP], data[D_DIST], data[D_SERV], data[D_DID], new_st, time)
 
     conn.close()
     fin.close()
