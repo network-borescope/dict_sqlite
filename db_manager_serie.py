@@ -127,7 +127,7 @@ def select_st_from_serie_temp(conn, ip, dist, serv, id ):
 
         datetime_tupla =  datetime.datetime.strptime(tupla[0], "%Y-%m-%d %H:%M:%S")
         delta = datetime_tupla - d_begin
-        st_array_pos = delta.seconds // 3600 # quantas horas apos o inicio comeca a serie temporal
+        st_array_pos = delta.seconds // 3600 # quantas horas apos o inicio da serie temporal
         st_array[st_array_pos] += int(tupla[1])
 
     return st_array
@@ -221,7 +221,7 @@ def aggregate_st(conn, ip):
     for timestamp, count in sorted(aggregate.items(), key=lambda item: item[0]):
         datetime_tupla =  datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
         delta = datetime_tupla - d_begin
-        st_array_pos = delta.seconds // 3600 # quantas horas apos o inicio comeca a serie temporal
+        st_array_pos = delta.seconds // 3600 # quantas horas apos o inicio da serie temporal
         st_array[st_array_pos] += count
 
     return st_array
