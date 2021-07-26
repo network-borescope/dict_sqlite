@@ -21,13 +21,13 @@ if conn is not None:
     result = select_host_ip_id(conn, '1.3.1.1')
     print(result)
 
-    result = get_or_insert(conn, "1.3.1.1")
+    result = get_or_insert_ip(conn, "1.3.1.1")
     print(result)
 
     result = select_host_ip_id(conn, '1.3.1.1')
     print(result)
 
-    result = get_or_insert(conn, "1.3.1.1")
+    result = get_or_insert_ip(conn, "1.3.1.1")
     print(result)
 
     conn.close()
